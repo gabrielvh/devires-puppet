@@ -50,5 +50,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #   apt-get update
   #   apt-get install -y apache2
   # SHELL
-  # config.vm.provision "shell", path: "scripts/vagrant_provision.sh"
+  config.vm.provision :shell, :path => "scripts/bootstrap.sh", :args => "'https://github.com/gibaholms/devires-puppet.git' master"
 end
