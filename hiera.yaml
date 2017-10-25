@@ -2,9 +2,12 @@
 version: 5
 
 defaults:
-  datadir: data
-  data_hash: yaml_data
+  datadir: hieradata
 
 hierarchy:
+  - name: "Env-specific"
+    path: "%{::environment}"
+  - name: "Host-specific"
+    path: "%{::hostname}"
   - name: "Common defaults"
     path: "common.yaml"

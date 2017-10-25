@@ -25,10 +25,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  #config.vm.synced_folder ".", "/etc/puppet/code/environments/production"
-  config.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
-  #config.vm.synced_folder "/tmp/software", "/software"
-
+  config.vm.synced_folder ".", "/etc/puppetlabs/code/environments/vagrant"
+  config.vm.synced_folder "/tmp/software", "/software"
+  #config.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
+  
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. View the documentation for the provider 
   # you are using for more information on available options.
@@ -50,5 +50,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #   apt-get update
   #   apt-get install -y apache2
   # SHELL
-  config.vm.provision :shell, :path => "scripts/bootstrap.sh", :args => "'https://github.com/gibaholms/devires-puppet.git' master"
+  #config.vm.provision :shell, :path => "scripts/bootstrap.sh", :args => "'https://github.com/gibaholms/devires-puppet.git' master"
+  config.vm.provision :shell, :path => "scripts/vagrant_provision.sh"
 end
