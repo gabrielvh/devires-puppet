@@ -3,5 +3,8 @@
 File { backup => false }
 
 node 'demo' {
+  
+  notice "environment ${environment}"
+  
   include role::wls1036_admin
 }

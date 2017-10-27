@@ -2,22 +2,28 @@
 messageDefault: 'default'
 messageEnv:     'common'
 
+##########################################################
+### profile::wls1036_os
+##########################################################
 
-hosts:
-  'admin.example.com':
-    ip:                "10.10.10.10"
-    host_aliases:      - 'admin'
-  'node1.example.com':
-    ip:                "10.10.10.100"
-    host_aliases:      - 'node1'
-  'node2.example.com':
-    ip:                "10.10.10.200"
-    host_aliases:      - 'node2'
-  'localhost':
-    ip:                "127.0.0.1"
-    host_aliases:      - 'localhost.localdomain'
-                       - 'localhost4'
-                       - 'localhost4.localdomain4'
+#profile::wls1036_os:user: &wls_os_user              "oracle"
+
+##########################################################
+### profile::java7
+##########################################################
+
+profile::java7::source_path: '/software'
+
+
+
+
+
+
+
+
+
+
+##########################################################
 
 wls_jdk_version:          'jdk1.7.0_45'
 wls_user_config_dir:      '/home/wls'
@@ -29,9 +35,9 @@ wls_weblogic_home_dir:    &wls_weblogic_home_dir    "/opt/oracle/middleware11g/w
 wls_middleware_home_dir:  &wls_middleware_home_dir  "/opt/oracle/middleware11g"
 wls_version:              &wls_version              "1036"
 
-# global OS vars
+# global OS vars 
 wls_os_user:              &wls_os_user              "oracle"
-wls_os_group:             &wls_os_group             "dba"
+wls_os_group:             &wls_os_group             "oracle"
 wls_download_dir:         &wls_download_dir         "/var/tmp/install"
 wls_source:               &wls_source               "/software"
 wls_remote_file:                                    false
@@ -39,7 +45,6 @@ wls_jdk_home_dir:         &wls_jdk_home_dir         "/usr/java/jdk1.7.0_45"
 wls_log_dir:              &wls_log_dir              "/data/logs"
 
 wls_domains_path_dir:      "/opt/oracle/wlsdomains/domains"
-
 
 # handy WebLogic scripts in /opt/scripts/wls
 orautils::osOracleHomeParam:      *wls_oracle_base_home_dir

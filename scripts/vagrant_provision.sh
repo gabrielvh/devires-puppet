@@ -4,4 +4,4 @@ sudo yum -y install git
 cd /etc/puppetlabs/code/environments/vagrant
 /opt/puppetlabs/puppet/bin/gem install r10k --no-rdoc --no-ri
 /opt/puppetlabs/puppet/bin/r10k puppetfile install --verbose
-/opt/puppetlabs/bin/puppet apply --environment=vagrant /etc/puppetlabs/code/environments/vagrant/manifests/
+/opt/puppetlabs/bin/puppet apply --environment=vagrant ./manifests/ --hiera_config ./hiera.yaml

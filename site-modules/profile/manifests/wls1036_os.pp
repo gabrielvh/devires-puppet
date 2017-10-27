@@ -1,75 +1,55 @@
-class profile::wls1036_common {
-  include os
-}
+class profile::wls1036_os (
+  Boolean $swap        = false,
+  String  $user        = 'oracle',
+  String  $password    = '$1$DSJ51vh6$4XzzwyIOk6Bi/54kglGk3.',
+  String  $group       = 'oracle',
+) {
 
-# operating settings for Middleware
-class os {
+  notice "class profile::wls1036_os"
 
-  notice "class os ${operatingsystem}"
-
-  $default_params = {}
-  
   $install = [ 'binutils.x86_64', 'unzip.x86_64' ]
 
   package { $install :
     ensure  => present,
   }
   
-  #$host_instances = hiera('hosts', [])
-  #create_resources('host', $host_instances, $default_params)
-
-  /*
-  exec { "create swap file":
-    command => "/bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=8192",
-    creates => "/var/swap.1",
+  if ($swap) {
+    notice "SWAP ENABLED"
+    swap_file::files { 'default':
+      ensure => present,
+    }
   }
-
-  exec { "attach swap file":
-    command => "/sbin/mkswap /var/swap.1 && /sbin/swapon /var/swap.1",
-    require => Exec["create swap file"],
-    unless => "/sbin/swapon -s | grep /var/swap.1",
-  }
-
-  #add swap file entry to fstab
-  exec {"add swapfile entry to fstab":
-    command => "/bin/echo >>/etc/fstab /var/swap.1 swap swap defaults 0 0",
-    require => Exec["attach swap file"],
-    user => root,
-    unless => "/bin/grep '^/var/swap.1' /etc/fstab 2>/dev/null",
-  }
-  */
-
+  
   service { 'iptables':
-        enable    => false,
-        ensure    => false,
-        hasstatus => true,
+    enable    => false,
+    ensure    => false,
+    hasstatus => true,
   }
 
-  group { 'dba':
+  group { $group :
     ensure => present,
   }
 
-  # http://raftaman.net/?p=1311 for generating password
-  # password = oracle
-  user { 'oracle':
+  # http://raftaman.net/?p=1311 for generating password (password = oracle)
+  user { $user :
     ensure     => present,
-    groups     => 'dba',
+    groups     => $group,
     shell      => '/bin/bash',
-    password   => '$1$DSJ51vh6$4XzzwyIOk6Bi/54kglGk3.',
-    home       => "/home/oracle",
-    comment    => 'oracle user created by Puppet',
+    password   => $password,
+    home       => "/home/$user",
+    comment    => 'User created by Puppet',
     managehome => true,
-    require    => Group['dba'],
+    require    => Group[$group],
   }
 
   class { 'limits':
     config => {
-               '*'       => {  'nofile'  => { soft => '2048'   , hard => '8192',   },},
-               'oracle'  => {  'nofile'  => { soft => '65536'  , hard => '65536',  },
-                               'nproc'   => { soft => '2048'   , hard => '16384',  },
-                               'memlock' => { soft => '1048576', hard => '1048576',},
-                               'stack'   => { soft => '10240'  ,},},
-               },
+      '*'          => { 'nofile'  => { soft => '2048'   , hard => '32768', },},
+      $user        => { 'nofile'  => { soft => '65536'  , hard => '32768', },
+                        'nproc'   => { soft => '2048'   , hard => '32768', },
+                        'memlock' => { soft => '1048576', hard => '1048576', },
+                        'stack'   => { soft => '10240'  ,},},
+    },
     use_hiera => false,
   }
 

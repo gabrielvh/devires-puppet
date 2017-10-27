@@ -1,13 +1,8 @@
 ---
-version: 5
-
-defaults:
-  datadir: hieradata
-
-hierarchy:
-  - name: "Env-specific"
-    path: "%{::environment}"
-  - name: "Host-specific"
-    path: "%{::hostname}"
-  - name: "Common defaults"
-    path: "common.yaml"
+:backends: yaml
+:yaml:
+  :datadir: hieradata
+:hierarchy: 
+  - "%{environment}"
+  - "%{hostname}"
+  - common
