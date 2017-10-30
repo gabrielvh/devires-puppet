@@ -21,9 +21,13 @@ class profile::wls1036_os (
   }
   
   service { 'iptables':
+    ensure    => stopped,
     enable    => false,
-    ensure    => false,
-    hasstatus => true,
+  }
+
+  exec { 'clear-iptables':
+    command => "/sbin/iptables -F",
+    onlyif  => "/sbin/lsmod | grep ip_tables",
   }
 
   group { $group :

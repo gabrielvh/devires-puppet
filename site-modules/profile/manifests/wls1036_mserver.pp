@@ -1,4 +1,4 @@
-class profile::wls1036_domain (
+class profile::wls1036_mserver (
   String $ora_home           = '/opt/oracle',
   String $fmw_home           = '/opt/oracle/middleware11g',
   String $source_path        = "/software",
@@ -8,6 +8,8 @@ class profile::wls1036_domain (
   String $weblogic_user      = 'weblogic',
   String $weblogic_password  = 'welcome1',
   String $log_dir            = '/data/log',
+  String  $adminserver_address = '10.10.10.10',
+  Integer $adminserver_port    = 7001,
 ) {
 
   notice "class profile::wls1036_domain"
@@ -30,77 +32,51 @@ class profile::wls1036_domain (
     remote_file                => false,
     log_output                 => true,
     javaParameters             => '', # '-Dspace.detection=false'
-  }  
+  }
 
-  orawls::domain { 'domain':
+  /*
+  exec { 'copydomain' :
+    command   => "scp -oStrictHostKeyChecking=no -oCheckHostIP=no guest@$adminserver_address:/var/tmp/install/domain_${domain_name}.jar /var/tmp/install/domain_${domain_name}.jar",
+    path      => "${jdk_home_dir}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin",
+    user      => "guest",
+    group     => "guest",
+    logoutput => true,
+  }
+  */
+
+  /*
+  orawls::copydomain { 'default' :
     version                    => 1036,
     weblogic_home_dir          => "$fmw_home/wlserver_10.3",
     middleware_home_dir        => $fmw_home,
     jdk_home_dir               => "/usr/java/latest",
     wls_domains_dir            => "$fmw_home/user_projects/domains",
     wls_apps_dir               => "$fmw_home/user_projects/applications",
+    use_ssh                    => false,
     download_dir               => "/var/tmp/install",
     os_user                    => $os_user,
     os_group                   => $os_group,
     log_dir                    => $log_dir,
     log_output                 => true,
-    domain_template            => 'standard',
+    
     domain_name                => $domain_name,
-    development_mode           => false,
     weblogic_user              => $weblogic_user,
     weblogic_password          => $weblogic_password,
-    adminserver_name           => 'AdminServer',
-    adminserver_address        => undef,
-    adminserver_port           => 7001,
-    java_arguments             => {},
-    nodemanager_address        => undef,
-    nodemanager_port           => 5556,
+    adminserver_address        => $adminserver_address,
+    adminserver_port           => $adminserver_port,
   }
+  */
 
-  orawls::nodemanager { 'nodemanager':
-    version                    => 1036,
-    middleware_home_dir        => $fmw_home,
-    weblogic_home_dir          => "$fmw_home/wlserver_10.3",
-    wls_domains_dir            => "$fmw_home/user_projects/domains",
-    jdk_home_dir               => "/usr/java/latest",
-    download_dir               => "/var/tmp/install",
-    domain_name                => $domain_name,
-    os_user                    => $os_user,
-    os_group                   => $os_group,
-    log_dir                    => $log_dir,
-    log_output                 => true,
-    nodemanager_port           => 5556,
-    nodemanager_address        => undef,
-  }
+  /*
+  $use_ssh                    = true,
+  $domain_pack_dir            = undef,
+  $userConfigFile             = hiera('domain_user_config_file'   , undef),
+  $userKeyFile                = hiera('domain_user_key_file'      , undef),
+  $weblogic_user              = hiera('wls_weblogic_user'         , 'weblogic'),
+  $weblogic_password          = hiera('domain_wls_password'       , undef),
+  */
 
-  orautils::nodemanagerautostart { 'nodemanagerautostart':
-    version                   => 1036,
-    wl_home                   => "$fmw_home/wlserver_10.3",
-    log_dir                    => $log_dir,
-    user                      => $os_user,
-  }
-
-  orawls::control { 'start':
-    middleware_home_dir        => $fmw_home,
-    weblogic_home_dir          => "$fmw_home/wlserver_10.3",
-    wls_domains_dir            => "$fmw_home/user_projects/domains",
-    jdk_home_dir               => "/usr/java/latest",
-    download_dir               => "/var/tmp/install",
-    domain_name                => $domain_name,
-    os_user                    => $os_user,
-    os_group                   => $os_group,
-    log_output                 => true,
-    weblogic_user              => $weblogic_user,
-    weblogic_password          => $weblogic_password,
-    nodemanager_port           => 5556,
-    adminserver_port           => 7001,
-    adminserver_address        => undef,
-    server_type                => 'admin',
-    target                     => 'Server',
-    server                     => 'AdminServer',
-    action                     => 'start',
-  }
-
+  /*
   orawls::storeuserconfig { 'default' :
     weblogic_home_dir          => "$fmw_home/wlserver_10.3",
     jdk_home_dir               => "/usr/java/latest",
@@ -109,35 +85,16 @@ class profile::wls1036_domain (
     os_user                    => $os_user,
     os_group                   => $os_group,
     log_output                 => true,
-    adminserver_address        => "localhost",
-    adminserver_port           => 7001,
+    adminserver_address        => $adminserver_address,
+    adminserver_port           => $adminserver_port,
     user_config_dir            => "/home/$os_user",
     weblogic_user              => $weblogic_user,
     weblogic_password          => $weblogic_password,
   }
+  */
 
-  orawls::packdomain { 'default' :
-    middleware_home_dir        => $fmw_home,
-    weblogic_home_dir          => "$fmw_home/wlserver_10.3",
-    wls_domains_dir            => "$fmw_home/user_projects/domains",
-    jdk_home_dir               => "/usr/java/latest",
-    download_dir               => "/var/tmp/install",
-    domain_name                => $domain_name,
-    os_user                    => $os_user,
-    os_group                   => $os_group,
-    log_output                 => true,
-  }
-
-  file { "/var/tmp/install/domain_$domain_name.jar" :
-    ensure    => 'file',
-    #owner    => 'guest',
-    #group    => '$username',
-    mode      => '774',
-    require   => Orawls::Packdomain['default']
-  }
-
+  /*
   wls_setting { 'default' :
-    require                      => Orawls::Control['start'],
     user                         => $os_user,
     weblogic_home_dir            => "$fmw_home/wlserver_10.3",
     connect_url                  => "t3://localhost:7001",
@@ -146,7 +103,6 @@ class profile::wls1036_domain (
   }
 
   wls_domain { $domain_name :
-    require                     => Orawls::Control['start'],
     ensure                      => 'present',
     jpa_default_provider        => 'org.eclipse.persistence.jpa.PersistenceProvider',
     jta_max_transactions        => '20000',
@@ -161,7 +117,6 @@ class profile::wls1036_domain (
   }
 
   wls_adminserver { 'AdminServer' :
-    require                   => Orawls::Control['start'],
     ensure                    => 'running',
     server_name               => 'AdminServer',
     domain_name               => $domain_name,
@@ -176,5 +131,6 @@ class profile::wls1036_domain (
     refreshonly               => true,
     subscribe                 => Wls_domain[$domain_name]
   }
-
+  */
+    
 }
