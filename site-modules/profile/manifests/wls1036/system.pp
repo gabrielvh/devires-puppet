@@ -1,17 +1,12 @@
-class profile::wls1036_os (
+class profile::wls1036::system (
   Boolean $swap        = false,
   String  $user        = 'oracle',
-  String  $password    = '$1$DSJ51vh6$4XzzwyIOk6Bi/54kglGk3.',
   String  $group       = 'oracle',
+  # http://raftaman.net/?p=1311 for generating password (password = oracle)
+  String  $password    = '$1$DSJ51vh6$4XzzwyIOk6Bi/54kglGk3.',
 ) {
 
-  notice "class profile::wls1036_os"
-
-  $install = [ 'binutils.x86_64', 'unzip.x86_64' ]
-
-  package { $install :
-    ensure  => present,
-  }
+  notice "class profile::wls1036::system"
   
   if ($swap) {
     notice "SWAP ENABLED"
@@ -20,21 +15,20 @@ class profile::wls1036_os (
     }
   }
   
-  service { 'iptables':
+  service { 'iptables' :
     ensure    => stopped,
     enable    => false,
   }
 
-  exec { 'clear-iptables':
-    command => "/sbin/iptables -F",
-    onlyif  => "/sbin/lsmod | grep ip_tables",
+  service { 'firewalld' :
+    ensure    => stopped,
+    enable    => false,
   }
 
   group { $group :
     ensure => present,
   }
 
-  # http://raftaman.net/?p=1311 for generating password (password = oracle)
   user { $user :
     ensure     => present,
     groups     => $group,

@@ -1,0 +1,8 @@
+---
+hosts:
+  'vg-wls1036-admin':
+    ip:                '10.10.10.10'
+    host_aliases:      'admin'
+  'vg-wls1036-mserver':
+    ip:                '10.10.10.20'
+    host_aliases:      'mserver'

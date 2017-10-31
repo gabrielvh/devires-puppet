@@ -1,7 +1,7 @@
 class profile::java7 (
-  String $jdk_version       = '7u80',
-  String $jdk_full_version  = 'jdk1.7.0_80',
-  String $source_path       = "/software",
+  String $jdk_version         = '7u80',
+  String $jdk_full_version    = 'jdk1.7.0_80',
+  String $source_path         = "/software",
 ) {
 
   notice "class profile::java7"
@@ -13,11 +13,13 @@ class profile::java7 (
   }
   
   include jdk7
+  
   jdk7::install7{ 'jdk7':
     version                => $jdk_version, 
     full_version           => $jdk_full_version,
     java_homes             => '/usr/java',
     download_dir           => '/var/tmp/install',
+    cryptography_extension_file => "UnlimitedJCEPolicyJDK7.zip",
     source_path            => $source_path,
     alternatives_priority  => 18000,
     x64                    => true,
