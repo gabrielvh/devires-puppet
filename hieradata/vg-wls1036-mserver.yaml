@@ -6,3 +6,8 @@ hosts:
   'vg-wls1036-mserver':
     ip:                '10.10.10.20'
     host_aliases:      'mserver'
+
+role::wls1036_mserver::mserver_name: 'mserver_1'
+role::wls1036_mserver::adminserver_address: '10.10.10.10'
+role::wls1036_mserver::mserver_port: '8001'
+role::wls1036_mserver::machine_name: 'RemoteMachine'

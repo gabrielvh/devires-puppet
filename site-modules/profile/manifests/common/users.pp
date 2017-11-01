@@ -30,7 +30,7 @@ class profile::common::users {
     owner   => "guest",
     group   => "guest",
     mode    => "600",
-    source  => "puppet:///modules/profile/ssh/id_rsa",
+    source  => "puppet:///modules/profile/ssh/guest/id_rsa",
     require => User['guest'],
   }
 
@@ -39,7 +39,7 @@ class profile::common::users {
     owner   => "guest",
     group   => "guest",
     mode    => "644",
-    source  => "puppet:///modules/profile/ssh/id_rsa.pub",
+    source  => "puppet:///modules/profile/ssh/guest/id_rsa.pub",
     require => User['guest'],
   }
 
@@ -48,7 +48,7 @@ class profile::common::users {
     owner   => "guest",
     group   => "guest",
     mode    => "644",
-    source  => "puppet:///modules/profile/ssh/id_rsa.pub",
+    source  => "puppet:///modules/profile/ssh/guest/id_rsa.pub",
     require => User['guest'],
   }
   

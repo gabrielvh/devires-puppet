@@ -1,7 +1,7 @@
 class profile::common {
   
-  include profile::common::packages
-  include profile::common::time
-  include profile::common::users
+  contain profile::common::packages
+  contain profile::common::time
+  contain profile::common::users
   
 }
