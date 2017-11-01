@@ -88,8 +88,6 @@ class profile::wls1036::domain (
     require                   => Orawls::Nodemanager['default']
   }
 
-  /*
-
   orawls::control { 'start' :
     middleware_home_dir        => $fmw_home,
     weblogic_home_dir          => "$fmw_home/wlserver_10.3",
@@ -109,7 +107,7 @@ class profile::wls1036::domain (
     target                     => 'Server',
     server                     => $adminserver_name,
     action                     => 'start',
-    #require                    => Orautils::Nodemanagerautostart['nmautostart']
+    require                    => Orautils::Nodemanagerautostart['nmautostart']
   }
 
   orawls::storeuserconfig { 'default' :
@@ -125,7 +123,7 @@ class profile::wls1036::domain (
     user_config_dir            => "/home/$os_user",
     weblogic_user              => $weblogic_user,
     weblogic_password          => $weblogic_password,
-    #require                    => Orawls::Control['start'],
+    require                    => Orawls::Control['start'],
   }
 
   wls_setting { 'default' :
@@ -209,12 +207,14 @@ class profile::wls1036::domain (
         listenport    => '5556',
         machinetype   => 'UnixMachine',
         nmtype        => 'SSL',
+        require       => Wls_setting['default']
       }
 
     }
   }
 
   # MANAGED SERVERS
+  $all_wls_server_refs = [ Wls_server[$adminserver_name] ]
   if (!empty($managed_servers)) {
     $managed_servers.each | String $mserver_name, Hash $mserver_attrs | {
       
@@ -236,7 +236,10 @@ class profile::wls1036::domain (
         max_message_size                  => '10000000',
         jsseenabled                       => '0',
         sslenabled                        => '0',
+        require                           => Wls_machine[$mserver_attrs[machine]],
       }
+
+      $all_wls_server_refs = $all_wls_server_refs + Wls_server[$mserver_name]
 
     }
   }
@@ -251,8 +254,7 @@ class profile::wls1036::domain (
     os_user                    => $os_user,
     os_group                   => $os_group,
     log_output                 => true,
+    require                    => $all_wls_server_refs,
   }
-
-  */
 
 }
