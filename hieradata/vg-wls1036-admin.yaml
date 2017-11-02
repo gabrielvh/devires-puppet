@@ -9,7 +9,7 @@ hosts:
 
 role::wls1036_domain::machines:
   'RemoteMachine':
-    address: '10.10.10.20'
+    address: 'vg-wls1036-mserver'
 role::wls1036_domain::managed_servers:
   'mserver_1':
     port: '8001'

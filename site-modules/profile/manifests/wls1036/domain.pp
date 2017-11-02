@@ -260,7 +260,7 @@ class profile::wls1036::domain (
 
   Wls_server <||>
 
-  ->
+  ~>
 
   orawls::packdomain { 'default' :
     middleware_home_dir        => $fmw_home,
@@ -272,6 +272,13 @@ class profile::wls1036::domain (
     os_user                    => $os_user,
     os_group                   => $os_group,
     log_output                 => true,
+  }
+
+  ->
+
+  file { "/var/tmp/install/domain_$domain_name.jar" :
+    ensure    => 'file',
+    mode      => '774',
   }
 
 }
