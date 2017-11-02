@@ -37,6 +37,8 @@ class profile::wls1036::domain (
     require                    => Class['profile::wls1036::system']
   }
 
+  ->
+
   orawls::domain { 'default' :
     version                    => 1036,
     weblogic_home_dir          => "$fmw_home/wlserver_10.3",
@@ -60,8 +62,9 @@ class profile::wls1036::domain (
     java_arguments             => {},
     nodemanager_address        => undef,
     nodemanager_port           => 5556,
-    require                    => Orawls::Weblogic_type['wls1036']
   }
+
+  ->
 
   orawls::nodemanager { 'default' :
     version                    => 1036,
@@ -75,18 +78,20 @@ class profile::wls1036::domain (
     os_group                   => $os_group,
     log_dir                    => $log_dir,
     log_output                 => true,
-    nodemanager_address        => "localhost",
+    nodemanager_address        => $adminserver_address,
     nodemanager_port           => 5556,
-    require                    => Orawls::Domain['default']
   }
+
+  ->
 
   orautils::nodemanagerautostart { 'nmautostart' :
     version                   => 1036,
     wl_home                   => "$fmw_home/wlserver_10.3",
     log_dir                   => $log_dir,
     user                      => $os_user,
-    require                   => Orawls::Nodemanager['default']
   }
+
+  ->
 
   orawls::control { 'start' :
     middleware_home_dir        => $fmw_home,
@@ -101,14 +106,15 @@ class profile::wls1036::domain (
     weblogic_user              => $weblogic_user,
     weblogic_password          => $weblogic_password,
     nodemanager_port           => 5556,
-    adminserver_address        => 'localhost',
+    adminserver_address        => $adminserver_address,
     adminserver_port           => 7001,
     server_type                => 'admin',
     target                     => 'Server',
     server                     => $adminserver_name,
     action                     => 'start',
-    require                    => Orautils::Nodemanagerautostart['nmautostart']
   }
+
+  ->
 
   orawls::storeuserconfig { 'default' :
     weblogic_home_dir          => "$fmw_home/wlserver_10.3",
@@ -118,22 +124,24 @@ class profile::wls1036::domain (
     os_user                    => $os_user,
     os_group                   => $os_group,
     log_output                 => true,
-    adminserver_address        => "localhost",
+    adminserver_address        => $adminserver_address,
     adminserver_port           => 7001,
     user_config_dir            => "/home/$os_user",
     weblogic_user              => $weblogic_user,
     weblogic_password          => $weblogic_password,
-    require                    => Orawls::Control['start'],
   }
+
+  ->
 
   wls_setting { 'default' :
     user                         => $os_user,
     weblogic_home_dir            => "$fmw_home/wlserver_10.3",
-    connect_url                  => "t3://localhost:7001",
+    connect_url                  => "t3://$adminserver_address:7001",
     weblogic_user                => $weblogic_user,
     weblogic_password            => $weblogic_password,
-    require                      => Orawls::Control['start'],
   }
+
+  ->
 
   wls_domain { $domain_name :
     ensure                      => 'present',
@@ -147,10 +155,12 @@ class profile::wls1036::domain (
     log_rotate_logon_startup    => '1',
     log_rotationtype            => 'bySize',
     security_crossdomain        => '1',
-    require                     => Wls_setting['default'],
   }
 
-  wls_adminserver { $adminserver_name :
+  ~>
+
+  # subscribe on domain changes
+  wls_adminserver { 'admin_r1' :
     ensure                    => 'running',
     server_name               => $adminserver_name,
     domain_name               => $domain_name,
@@ -160,19 +170,55 @@ class profile::wls1036::domain (
     weblogic_user             => $weblogic_user,
     weblogic_password         => $weblogic_password,
     jdk_home_dir              => "/usr/java/latest",
-    nodemanager_address       => "localhost",
+    nodemanager_address       => $adminserver_address,
     nodemanager_port          => 5556,
     refreshonly               => true,
-    subscribe                 => Wls_domain[$domain_name],
   }
 
-  wls_machine { 'LocalMachine' :
-    ensure        => 'present',
-    listenaddress => 'localhost',
-    listenport    => '5556',
-    machinetype   => 'UnixMachine',
-    nmtype        => 'SSL',
-    require       => Wls_setting['default']
+  ->
+
+  Wls_machine <||>
+
+  # MACHINES
+  $local_machine = { 'LocalMachine' => {address => $adminserver_address} }
+  $all_machines = merge($local_machine, $machines)
+  $all_machines.each | String $machine_name, Hash $machine_attrs | {
+    notice "MACHINE -> $machine_name -> $machine_attrs"
+    wls_machine { $machine_name :
+      ensure        => 'present',
+      listenaddress => $machine_attrs[address],
+      listenport    => '5556',
+      machinetype   => 'UnixMachine',
+      nmtype        => 'SSL',
+    }
+  }
+
+  Wls_machine <||>
+
+  ->
+
+  Wls_server <||>
+
+  # MANAGED SERVERS
+  $managed_servers.each | String $mserver_name, Hash $mserver_attrs | {
+    notice "MANAGED SERVER -> $mserver_name -> $mserver_attrs"
+    wls_server { $mserver_name :
+      ensure                            => 'present',
+      arguments                         => "-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=$log_dir/${mserver_name}.out -Dweblogic.Stderr=$log_dir/${mserver_name}_err.out",
+      listenport                        => $mserver_attrs[port],
+      machine                           => $mserver_attrs[machine],
+      logfilename                       => "$log_dir/${mserver_name}.log",
+      log_http_filename                 => "$log_dir/${mserver_name}_access.log",
+      log_datasource_filename           => "$log_dir/${mserver_name}_datasource.log",
+      log_file_min_size                 => '2000',
+      log_filecount                     => '10',
+      log_number_of_files_limited       => '1',
+      log_rotate_logon_startup          => '1',
+      log_rotationtype                  => 'bySize',
+      max_message_size                  => '10000000',
+      jsseenabled                       => '0',
+      sslenabled                        => '0',
+    }
   }
 
   wls_server { $adminserver_name :
@@ -192,57 +238,29 @@ class profile::wls1036::domain (
     max_message_size                  => '10000000',
     jsseenabled                       => '0',
     sslenabled                        => '0',
-    require                           => Wls_machine['LocalMachine'],
   }
 
-  # MACHINES
-  if (!empty($machines)) {
-    $machines.each | String $machine_name, Hash $machine_attrs | {
-      
-      notice "MACHINE -> $machine_name -> $machine_attrs"
+  ~>
 
-      wls_machine { $machine_name :
-        ensure        => 'present',
-        listenaddress => $machine_attrs[address],
-        listenport    => '5556',
-        machinetype   => 'UnixMachine',
-        nmtype        => 'SSL',
-        require       => Wls_setting['default']
-      }
-
-    }
+  # subscribe on admin server changes
+  wls_adminserver { 'admin_r2' :
+    ensure                    => 'running',
+    server_name               => $adminserver_name,
+    domain_name               => $domain_name,
+    domain_path               => "$fmw_home/user_projects/domains/$domain_name",
+    os_user                   => $os_user,
+    weblogic_home_dir         => "$fmw_home/wlserver_10.3",
+    weblogic_user             => $weblogic_user,
+    weblogic_password         => $weblogic_password,
+    jdk_home_dir              => "/usr/java/latest",
+    nodemanager_address       => $adminserver_address,
+    nodemanager_port          => 5556,
+    refreshonly               => true,
   }
 
-  # MANAGED SERVERS
-  $all_wls_server_refs = [ Wls_server[$adminserver_name] ]
-  if (!empty($managed_servers)) {
-    $managed_servers.each | String $mserver_name, Hash $mserver_attrs | {
-      
-      notice "MANAGED SERVER -> $mserver_name -> $mserver_attrs"
-      
-      wls_server { $mserver_name :
-        ensure                            => 'present',
-        arguments                         => "-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=$log_dir/${mserver_name}.out -Dweblogic.Stderr=$log_dir/${mserver_name}_err.out",
-        listenport                        => $mserver_attrs[port],
-        machine                           => $mserver_attrs[machine],
-        logfilename                       => "$log_dir/${mserver_name}.log",
-        log_http_filename                 => "$log_dir/${mserver_name}_access.log",
-        log_datasource_filename           => "$log_dir/${mserver_name}_datasource.log",
-        log_file_min_size                 => '2000',
-        log_filecount                     => '10',
-        log_number_of_files_limited       => '1',
-        log_rotate_logon_startup          => '1',
-        log_rotationtype                  => 'bySize',
-        max_message_size                  => '10000000',
-        jsseenabled                       => '0',
-        sslenabled                        => '0',
-        require                           => Wls_machine[$mserver_attrs[machine]],
-      }
+  Wls_server <||>
 
-      $all_wls_server_refs = $all_wls_server_refs + Wls_server[$mserver_name]
-
-    }
-  }
+  ->
 
   orawls::packdomain { 'default' :
     middleware_home_dir        => $fmw_home,
@@ -254,7 +272,6 @@ class profile::wls1036::domain (
     os_user                    => $os_user,
     os_group                   => $os_group,
     log_output                 => true,
-    require                    => $all_wls_server_refs,
   }
 
 }

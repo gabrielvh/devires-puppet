@@ -16,7 +16,7 @@ class profile::wls1036::mserver (
 
   notice "class profile::wls1036::mserver"
 
-  class { 'orawls::weblogic' :
+  orawls::weblogic_type { 'wls1036' :
     version                    => 1036,
     filename                   => "wls1036_generic.jar",
     source                     => $source_path,
@@ -37,21 +37,24 @@ class profile::wls1036::mserver (
     require                    => Class['profile::wls1036::system']
   }
 
+  -> 
+
   exec { 'copydomain' :
     command   => "scp -oStrictHostKeyChecking=no -oCheckHostIP=no guest@$adminserver_address:/var/tmp/install/domain_${domain_name}.jar /var/tmp/domain_${domain_name}.jar",
     path      => "${jdk_home_dir}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin",
     user      => "guest",
     group     => "guest",
     logoutput => true,
-    require   => Class['orawls::weblogic']
   }
+
+  -> 
 
   file { "/var/tmp/domain_${domain_name}.jar" :
     ensure  => present,
     mode    => "777",
-    alias   => "domain-pack-file",
-    require => Exec['copydomain'],
   }
+
+  ->
 
   orawls::copydomain { 'default' :
     version                    => 1036,
@@ -72,8 +75,9 @@ class profile::wls1036::mserver (
     weblogic_password          => $weblogic_password,
     adminserver_address        => $adminserver_address,
     adminserver_port           => '7001',
-    require                    => File['domain-pack-file']
   }
+
+  ->
 
   orawls::storeuserconfig { 'default' :
     weblogic_home_dir          => "$fmw_home/wlserver_10.3",
@@ -88,8 +92,9 @@ class profile::wls1036::mserver (
     user_config_dir            => "/home/$os_user",
     weblogic_user              => $weblogic_user,
     weblogic_password          => $weblogic_password,
-    require                    => Orawls::Copydomain['default'],
   }
+
+  ->
 
   orawls::nodemanager { 'nodemanager' :
     version                    => 1036,
@@ -105,8 +110,9 @@ class profile::wls1036::mserver (
     log_output                 => true,
     nodemanager_port           => 5556,
     nodemanager_address        => undef,
-    require                    => Orawls::Storeuserconfig['default'],
   }
+
+  -> 
 
   wls_setting { 'default' :
     user                         => $os_user,
@@ -114,22 +120,6 @@ class profile::wls1036::mserver (
     connect_url                  => "t3://$adminserver_address:7001",
     weblogic_user                => $weblogic_user,
     weblogic_password            => $weblogic_password,
-    require                      => Orawls::Copydomain['default'],
-  }
-
-  wls_machine { $machine_name :
-    ensure        => 'present',
-    listenaddress => $hostname,
-    listenport    => '5556',
-    machinetype   => 'UnixMachine',
-    nmtype        => 'SSL',
-    require       => Wls_setting['default'],
-  }
-
-  wls_server { $mserver_name :
-    ensure                            => 'present',
-    machine                           => $machine_name,
-    require                           => Wls_machine[$machine_name],
   }
     
 }

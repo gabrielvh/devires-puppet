@@ -10,7 +10,7 @@ class profile::wls1036::system (
   
   if ($swap) {
 
-    notice "SWAP ENABLED"
+    notice "SWAP -> $swap"
     
     swap_file::files { 'default':
       ensure => present,
