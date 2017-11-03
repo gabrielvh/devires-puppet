@@ -1,2 +1,6 @@
 ---
 profile::wls1036::system::swap: true
+
+sudo::configs:
+  'vagrant':
+    content: 'vagrant ALL=(ALL) NOPASSWD: ALL'

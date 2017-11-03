@@ -1,0 +1,41 @@
+############################
+# THIS FILE IS MANAGED BY PUPPET, DO NOT EDIT MANUALLY, YOUR CHANGES WILL BE OVERWRITTEN!
+############################
+# Mplus default sudoers
+############################
+
+## defaults
+Defaults logfile=/var/log/sudo.log
+Defaults always_set_home
+Defaults env_reset
+Defaults loglinelen=0
+Defaults@ALL log_year
+
+## grupos
+User_Alias      OS_ADMIN    = %osadmin
+User_Alias      MID_ADMIN   = %midadmin
+User_Alias      DB_ADMIN    = %dbadmin
+
+## comandos
+Cmnd_Alias      SUDO_MIDADMIN   =   /usr/local/bin/su - oramid, \
+                                    /usr/bin/su - oramid, \
+                                    /bin/su - oramid
+
+Cmnd_Alias      SUDO_DBADMIN    =   /usr/local/bin/su - oracle, \
+                                    /usr/bin/su - oracle, \
+                                    /bin/su - oracle
+## privilegios
+OS_ADMIN        ALL = NOPASSWD: ALL
+MID_ADMIN       ALL = NOPASSWD: SUDO_MIDADMIN
+DB_ADMIN        ALL = NOPASSWD: SUDO_DBADMIN
+
+## Chef commands
+Cmnd_Alias CHEF_CMDS    =   /usr/bin/chef-client
+
+## Puppet commands
+Cmnd_Alias PUPPET_CMDS  =   /usr/bin/puppet, \
+                            /usr/local/bin/puppet
+
+## User specification
+chefuser        ALL=(ALL) NOPASSWD: CHEF_CMDS
+puppet          ALL=(ALL) NOPASSWD: PUPPET_CMDS
