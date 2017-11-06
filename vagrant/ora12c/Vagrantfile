@@ -1,0 +1,20 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # DB SERVER
+  config.vm.define "dbserver", primary: true do |dbserver|
+    dbserver.vm.box = "puppetlabs/centos-7.0-64-puppet"
+    dbserver.vm.hostname = "vg-ora12c-server"
+    dbserver.vm.synced_folder "../../", "/etc/puppetlabs/code/environments/vagrant"
+    dbserver.vm.synced_folder "/tmp/software", "/software"
+    dbserver.vm.network :private_network, ip: "10.10.10.5"
+    dbserver.vm.provider :virtualbox do |vb|
+      vb.memory = "3548"
+      vb.name = "dbserver"
+    end
+    dbserver.vm.provision :shell, :path => "../../scripts/vagrant_provision.sh"
+  end
+end

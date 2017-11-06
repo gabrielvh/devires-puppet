@@ -1,2 +1,4 @@
 ---
 profile::wls1036::system::swap: true
+profile::ora12c::system::swap: true
+profile::soa11g::system::swap: true

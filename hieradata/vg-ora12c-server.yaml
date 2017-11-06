@@ -1,0 +1,9 @@
+---
+hosts:
+  'vg-ora12c-server':
+    ip:                '10.10.10.5'
+    host_aliases:      'dbserver'
+
+role::ora12c_server::machines:
+  'RemoteMachine':
+    address: 'vg-ora12c-server'

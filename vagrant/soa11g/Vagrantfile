@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # ADMIN SERVER
+  config.vm.define "admin", primary: true do |admin|
+    admin.vm.box = "puppetlabs/centos-7.0-64-puppet"
+    admin.vm.hostname = "vg-soa11g-admin"
+    admin.vm.synced_folder "../../", "/etc/puppetlabs/code/environments/vagrant"
+    admin.vm.synced_folder "/tmp/software", "/software"
+    admin.vm.network :private_network, ip: "10.10.10.110"
+    admin.vm.provider :virtualbox do |vb|
+      vb.memory = "3548"
+      vb.name = "admin"
+    end
+    admin.vm.provision :shell, :path => "../../scripts/vagrant_provision.sh"
+  end
+
+  ## MANAGED SERVER
+  # config.vm.define "mserver", primary: true do |mserver|
+  #   mserver.vm.box = "puppetlabs/centos-7.0-64-puppet"
+  #   mserver.vm.hostname = "vg-soa11g-mserver"
+  #   mserver.vm.synced_folder "../../", "/etc/puppetlabs/code/environments/vagrant"
+  #   mserver.vm.synced_folder "/tmp/software", "/software"
+  #   mserver.vm.network :private_network, ip: "10.10.10.120"
+  #   mserver.vm.provider :virtualbox do |vb|
+  #     vb.memory = "3548"
+  #     vb.name = "mserver"
+  #   end
+  #   mserver.vm.provision :shell, :path => "../../scripts/vagrant_provision.sh"
+  # end
+
+end

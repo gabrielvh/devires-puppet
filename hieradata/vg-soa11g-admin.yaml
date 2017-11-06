@@ -1,0 +1,16 @@
+---
+hosts:
+  'vg-soa11g-admin':
+    ip:                '10.10.10.110'
+    host_aliases:      'admin'
+  'vg-soa11g-mserver':
+    ip:                '10.10.10.120'
+    host_aliases:      'mserver'
+
+role::soa11g_domain::machines:
+  'RemoteMachine':
+    address: 'vg-soa11g-mserver'
+role::soa11g_domain::managed_servers:
+  'mserver_1':
+    port: '8001'
+    machine: 'RemoteMachine'
